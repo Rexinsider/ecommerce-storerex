@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { createBrowserClient } from '@supabase/ssr'
 
 export default function NewProduct() {
   const [loading, setLoading] = useState(false)
@@ -15,10 +15,13 @@ export default function NewProduct() {
 
     const form = e.currentTarget
     const formData = new FormData(form)
-    const supabase = createBrowserClient()
+    
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
 
     try {
-      // Upload images
       const imageUrls = await Promise.all(
         images.map(async (image) => {
           const fileName = `${Date.now()}-${image.name}`
@@ -34,7 +37,6 @@ export default function NewProduct() {
         })
       )
 
-      // Create product
       const { error } = await supabase.from('products').insert({
         name: formData.get('name'),
         slug: (formData.get('name') as string)
